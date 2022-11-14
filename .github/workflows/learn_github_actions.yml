@@ -1,5 +1,6 @@
 name: Learn Github Actons
 run-name: ${{ github.actor }} is learning Github Actions
+on: [push]
 
 jobs:
   check-bats-version:
