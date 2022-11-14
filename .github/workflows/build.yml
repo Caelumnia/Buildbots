@@ -8,6 +8,7 @@ env:
   SOURCE_URL: https://github.com/openwrt/openwrt.git
   SOURCE_BRANCH: openwrt-22.03
   TZ: Asia/Shanghai
+  CONFIG_FILE: .config
   UPLOAD_BIN_DIR: true
   UPLOAD_FIRMWARE: true
 
@@ -46,6 +47,7 @@ jobs:
 
     - name: Download package
       run: |
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE .config
         cd openwrt
         make defconfig
         make download -j2
