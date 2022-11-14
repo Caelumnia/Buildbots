@@ -33,7 +33,7 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
-        git clone $SOURCE_URL -b $SOURCE_BRANCE --depth=1 openwrt
+        git clone --depth=1 $SOURCE_URL -b $SOURCE_BRANCE openwrt
         ln -sf /workdir/openwrt $GIRHUB_WORKSPACE/openwrt
 
     - name: Feeds
