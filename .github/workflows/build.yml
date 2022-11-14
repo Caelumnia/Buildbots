@@ -8,6 +8,8 @@ env:
   SOURCE_URL: https://github.com/openwrt/openwrt.git
   SOURCE_BRANCH: openwrt-22.03
   TZ: Asia/Shanghai
+  UPLOAD_BIN_DIR: true
+  UPLOAD_FIRMWARE: true
 
 jobs:
   Build:
@@ -28,9 +30,9 @@ jobs:
         sudo -E docker image prune -a -f
         sudo -E timedatectl set-timezone "$TZ"
 
-    - name: Print disk usage
+    - name: Check space usage
       run: |
-        sudo df -hT $GITHUB_WORKSPACE
+        df -hT $GITHUB_WORKSPACE
 
     - name: Clone source code
       run: |
@@ -51,22 +53,23 @@ jobs:
         find dl -size -1024c -exec rm -f {} \;
 
     - name: Compile the firmware
+      id: compile
       run: |
         cd openwrt
         echo -e "$(nproc) thread compile"
         make -j$(nproc)
-        echo "::set-output name=status::success"
+        echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
     - name: Check space usage
       if: (!cancelled())
-      run: df -hT
+      run: df -hT $GITHUB_WORKSPACE
 
     - name: Upload bin directory
       uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      if: env.UPLOAD_BIN_DIR == 'true' && steps.compile.outputs.status == 'success'
       with:
         name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: openwrt/bin
@@ -78,7 +81,7 @@ jobs:
         cd openwrt/bin/targets/*/*
         rm -rf packages
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "::set-output name=status::success"
+        echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
@@ -86,10 +89,3 @@ jobs:
       with:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
-
-    - name: Generate release tag
-      id: tag
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-      run: |
-        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
-        echo "::set-output name=status::success"
