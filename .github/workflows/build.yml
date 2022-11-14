@@ -32,6 +32,7 @@ jobs:
     - name: Clone source code
       working-directory: /workdir
       run: |
+        ls -al
         df -hT $PWD
         git clone --depth=1 $SOURCE_URL -b $SOURCE_BRANCH openwrt
         ln -sf /workdir/openwrt $GIRHUB_WORKSPACE/openwrt
