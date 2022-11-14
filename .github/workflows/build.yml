@@ -27,10 +27,10 @@ jobs:
         sudo -E apt-get -qq clean
         sudo -E docker image prune -a -f
         sudo -E timedatectl set-timezone "$TZ"
-    
+
     - name: Print disk usage
       run: |
-        sudo btrfs filesystem usage $GITHUB_WORKSPACE
+        sudo df -hT $GITHUB_WORKSPACE
 
     - name: Clone source code
       run: |
